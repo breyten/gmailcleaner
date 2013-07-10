@@ -9,7 +9,8 @@ usage
 1. Clone the repository
 2. Copy `config.ini.example` to `config.ini`
 3. Edit `config.ini` with your Gmail credentials
-
+4. `bundle install`
+5. `ruby gmailcleaner.rb`
 
 note
 ====
