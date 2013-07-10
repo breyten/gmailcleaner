@@ -5,17 +5,48 @@ require 'bundler'
 require 'gmail'
 require 'inifile'
 
-start_time = Time.new - 2*86400
-start_date = start_time.strftime('%y-%m-%d')
 config = IniFile.load('config.ini')
 
+rules = config.sections.reject{ |section| section == 'auth' }
+
 Gmail.connect(config['auth']['user'], config['auth']['password']) do |gmail|
-  subjects = ['alert', 'high']
-  
-  subjects.each do |subject|
-    #puts gmail.inbox.search(:from => 'contact@stathat.com', :subject => subject, :before => start_date).count
-    gmail.inbox.search(:from => 'contact@stathat.com',  :subject => subject, :before => start_date).each do |email|
-      email.delete!
+  rules.each do |rule|
+    passes = []
+    puts rule
+
+    if config[rule].has_key?('subject')
+      subjects = config[rule]['subject'].split(',')
+      subjects.each do |subject|
+        passes << {
+          :subject => subject
+        }
+      end
+    else
+      passes << {}
+    end
+    
+    if config[rule].has_key?('from')
+      passes.each do |pass|
+        pass[:from] = config[rule]['from']
+      end
+    end
+
+    if config[rule].has_key?('delay')
+       delay = config[rule]['delay'].to_i
+    else
+      delay = 86400
+    end
+    passes.each do |pass|
+      pass[:before] = Time.new - delay
+    end
+
+    passes.each do |pass|
+      subject_count = gmail.inbox.search(pass).count
+      puts pass[:subject], subject_count
+      gmail.inbox.search(pass).each do |email|
+        puts email.subject
+        email.delete!
+      end
     end
   end
 end

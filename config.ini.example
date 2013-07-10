@@ -1,3 +1,8 @@
 [auth]
 user=xxx@gmail.com
 password=yyyy
+
+[rule1]
+from=email@example.org
+delay=86400
+subject=test
