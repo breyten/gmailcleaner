@@ -41,9 +41,14 @@ Gmail.connect(config['auth']['user'], config['auth']['password']) do |gmail|
     end
 
     passes.each do |pass|
-      subject_count = gmail.inbox.search(pass).count
+      if config[rule].has_key?('label')
+        mailbox = gmail.mailbox(config[rule]['label'])
+      else
+        mailbox = gmail.inbox
+      end
+      subject_count = mailbox.search(pass).count
       puts pass[:subject], subject_count
-      gmail.inbox.search(pass).each do |email|
+      mailbox.search(pass).each do |email|
         puts email.subject
         email.delete!
       end
